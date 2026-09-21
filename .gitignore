@@ -1,3 +1,12 @@
-environments/dev/.terragrunt-cache/
-environments/qa/.terragrunt-cache/
-environments/prod/.terragrunt-cache/
+# Terragrunt cache (generado automáticamente, nunca debe subirse)
+**/.terragrunt-cache/
+
+# Archivos de variables locales (contienen datos sensibles para pruebas locales)
+**/local.tfvars
+
+# Archivos generados por Terragrunt en cada init
+**/backend.tf
+
+# Planes de Terraform (binarios, no deben versionarse)
+**/*.tfplan
+**/tfplan

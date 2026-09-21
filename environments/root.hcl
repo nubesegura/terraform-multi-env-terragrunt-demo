@@ -25,9 +25,11 @@ remote_state {
 }
 
 # Inyectamos variables dinámicas hacia el módulo de Terraform
+# bucket_name y environment se construyen dinámicamente usando get_aws_account_id()
+# Las variables de lifecycle se toman desde env.hcl (entornos) y pueden sobreescribirse con pipeline.tfvars
 inputs = {
-  bucket_name               = "my-app-data-${local.env}-local-${local.account}-${local.region}"
-  environment               = "${local.env}-local"
+  bucket_name               = "my-app-data-${local.env}-${local.account}-${local.region}"
+  environment               = local.env
   lifecycle_expiration_days = local.env_vars.locals.lifecycle_expiration_days
   lifecycle_transition_days = local.env_vars.locals.lifecycle_transition_days
 }
