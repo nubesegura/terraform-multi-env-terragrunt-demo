@@ -1,0 +1,58 @@
+name: Despliegue Terragrunt S3 Multi-Environment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Entorno a desplegar'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - qa
+          - prod
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    name: Terragrunt Apply (${{ github.event.inputs.environment }})
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+
+    defaults:
+      run:
+        working-directory: ./environments/${{ github.event.inputs.environment }}
+
+    steps:
+      - name: 📥 Checkout del repositorio
+        uses: actions/checkout@v3
+
+      - name: ☁️ Configurar credenciales de AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-west-1
+
+      - name: 🏗️ Instalar Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.7
+
+      - name: 🚜 Instalar Terragrunt
+        run: |
+          curl -L -o terragrunt https://github.com/gruntwork-io/terragrunt/releases/download/v0.50.14/terragrunt_linux_amd64
+          chmod +x terragrunt
+          sudo mv terragrunt /usr/local/bin/terragrunt
+
+      - name: 📝 Terragrunt Init
+        run: terragrunt init
+
+      - name: 🔍 Terragrunt Plan
+        run: terragrunt plan -var-file=pipeline.tfvars -out=tfplan
+
+      - name: 🚀 Terragrunt Apply
+        run: terragrunt apply -auto-approve tfplan

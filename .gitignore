@@ -1,0 +1,3 @@
+environments/dev/.terragrunt-cache/
+environments/qa/.terragrunt-cache/
+environments/prod/.terragrunt-cache/
