@@ -57,6 +57,18 @@ jobs:
       - name: 📥 Checkout del repositorio
         uses: actions/checkout@v4
 
+      - name: 🔍 Debug OIDC Token Claims
+        run: |
+          # Extraemos el JWT token que GitHub Actions emite
+          TOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r '.value')
+          # Decodificamos el payload para ver el claim "sub" exacto que AWS está evaluando
+          PAYLOAD=$(echo "$TOKEN" | awk -F. '{print $2}' | sed 's/-/+/g; s/_/\//g')
+          # Añadimos padding si es necesario
+          MOD=$((${#PAYLOAD} % 4))
+          if [ $MOD -eq 2 ]; then PAYLOAD="${PAYLOAD}=="; elif [ $MOD -eq 3 ]; then PAYLOAD="${PAYLOAD}="; fi
+          echo "El claim que GitHub está enviando a AWS es:"
+          echo "$PAYLOAD" | base64 -d | jq '{sub: .sub, aud: .aud, repository: .repository, environment: .environment}'
+
       - name: ☁️ Configurar credenciales de AWS (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
